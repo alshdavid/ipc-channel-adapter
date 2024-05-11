@@ -32,10 +32,12 @@ where
   Response: Clone + Send + Serialize + DeserializeOwned + 'static,
 {
   pub fn new() -> Self {
-    let (server_name, tx_ipc, rx_ipc) = create_ipc_host::<IpcClientRequestContext<Request>, IpcClientResponseContext<Response>>().unwrap();
+    let (server_name, tx_ipc, rx_ipc) =
+      create_ipc_host::<IpcClientRequestContext<Request>, IpcClientResponseContext<Response>>()
+        .unwrap();
 
     let messages = Arc::new(Mutex::new(HashMap::<usize, Sender<Response>>::new()));
-      
+
     thread::spawn({
       let messages = messages.clone();
 

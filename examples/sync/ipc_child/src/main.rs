@@ -20,7 +20,8 @@ fn main() {
 
   // Receive requests from host
   let host_receiver_server = env::var("IPC_CHANNEL_HOST_OUT").unwrap();
-  let (_host_receiver, host_receiver_rx) = HostReceiver::<usize, usize>::new(&host_receiver_server).unwrap();
+  let (_host_receiver, host_receiver_rx) =
+    HostReceiver::<usize, usize>::new(&host_receiver_server).unwrap();
 
   // If not running benchmark
   if !config.benchmark {

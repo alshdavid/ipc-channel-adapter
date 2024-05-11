@@ -27,7 +27,7 @@ fn main() {
 
   // Send requests to child
   let child_sender = ChildSender::<usize, usize>::new();
-  
+
   // Receive requests from child
   let (child_receiver, child_rx) = ChildReceiver::<usize, usize>::new().unwrap();
 

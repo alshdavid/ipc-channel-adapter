@@ -16,8 +16,8 @@ where
   Request: Clone + Send + Serialize + DeserializeOwned + 'static,
   Response: Clone + Send + Serialize + DeserializeOwned + 'static,
 {
-  _0: PhantomData<Request>, 
-  _1: PhantomData<Response>, 
+  _0: PhantomData<Request>,
+  _1: PhantomData<Response>,
 }
 
 impl<Request, Response> HostReceiver<Request, Response>
@@ -30,7 +30,10 @@ where
     let (tx, rx) = channel::<(Request, Sender<Response>)>();
 
     thread::spawn(move || {
-      let Ok((tx_ipc, rx_ipc)) = create_ipc_child::<IpcClientResponseContext<Response>, IpcClientRequestContext<Request>>(&ipc_child_client) else {
+      let Ok((tx_ipc, rx_ipc)) = create_ipc_child::<
+        IpcClientResponseContext<Response>,
+        IpcClientRequestContext<Request>,
+      >(&ipc_child_client) else {
         return;
       };
 
@@ -38,15 +41,21 @@ where
         let (tx_reply, rx_reply) = channel::<Response>();
         tx.send((data.1, tx_reply)).unwrap();
         let response = rx_reply.recv().unwrap();
-        if tx_ipc.send(IpcClientResponseContext::<Response>(data.0, response)).is_err() {
+        if tx_ipc
+          .send(IpcClientResponseContext::<Response>(data.0, response))
+          .is_err()
+        {
           return;
         };
       }
     });
 
-    Ok((Self { 
-      _0: PhantomData{},
-      _1: PhantomData{},
-    }, rx))
+    Ok((
+      Self {
+        _0: PhantomData {},
+        _1: PhantomData {},
+      },
+      rx,
+    ))
   }
 }

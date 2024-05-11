@@ -51,11 +51,10 @@ where
     Ok((
       Self {
         server_name,
-        _0: PhantomData{},
-        _1: PhantomData{},
+        _0: PhantomData {},
+        _1: PhantomData {},
       },
       rx,
     ))
   }
-
 }

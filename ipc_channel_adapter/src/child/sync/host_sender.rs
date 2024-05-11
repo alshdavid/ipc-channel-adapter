@@ -32,8 +32,11 @@ where
 {
   pub fn new(channel_name: &str) -> Result<Self, ()> {
     let ipc_child_host = channel_name.to_string();
-    
-    let Ok((tx_ipc, rx_ipc)) = create_ipc_child::<IpcClientRequestContext<Request>, IpcClientResponseContext<Response>>(&ipc_child_host) else {
+
+    let Ok((tx_ipc, rx_ipc)) = create_ipc_child::<
+      IpcClientRequestContext<Request>,
+      IpcClientResponseContext<Response>,
+    >(&ipc_child_host) else {
       return Err(());
     };
 
