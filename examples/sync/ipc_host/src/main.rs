@@ -1,3 +1,4 @@
+use std::env;
 use std::process::Command;
 use std::process::Stdio;
 use std::thread;
@@ -22,12 +23,17 @@ fn main() {
   let child_sender = ChildSender::<usize, usize>::new();
   let child_receiver = ChildReceiver::<usize, usize>::new();
 
-  let entry = std::env::current_exe()
+  let mut entry = std::env::current_exe()
     .unwrap()
     .parent()
     .unwrap()
-    .join("ipc_child_sync")
     .to_owned();
+
+  if env::consts::OS == "windows" {
+    entry = entry.join("ipc_child_sync.exe");
+  } else {
+    entry = entry.join("ipc_child_sync");
+  }
 
   let mut command = Command::new(entry.to_str().unwrap());
   command.env("IPC_CHANNEL_HOST_OUT", &child_sender.server_name);
@@ -59,11 +65,17 @@ fn main() {
   println!("Benchmark: host sending \"{}\" messages", config.benchmark_message_count);
 
   // Benchmark mode
+  let expect = 1 * config.benchmark_message_count;
+  let mut sum = 0;
+
   let start_time = SystemTime::now();
   for _ in 0..config.benchmark_message_count {
-    child_sender.send_blocking(42);
+    let result = child_sender.send_blocking(1);
+    sum += result;
   }
   let end_time = start_time.elapsed().unwrap();
+
+  assert!(sum == expect, "Expected sums to match");
 
   println!(
     "Total Time (ms): {:.3}s",
