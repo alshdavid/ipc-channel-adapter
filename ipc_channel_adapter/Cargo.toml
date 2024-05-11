@@ -4,6 +4,7 @@ version = "0.1.0"
 authors = ["David Alsh"]
 edition = "2021"
 description = "Provides a utility for fast cross process communication"
+license = "MIT"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 [features]
