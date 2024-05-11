@@ -1,3 +1,4 @@
+use std::marker::PhantomData;
 use std::sync::mpsc::channel;
 use std::sync::mpsc::Receiver;
 use std::sync::mpsc::Sender;
@@ -6,17 +7,17 @@ use std::thread;
 use serde::de::DeserializeOwned;
 use serde::Serialize;
 
-use crate::broadcast_channel::sync::BroadcastChannel;
 use crate::context::IpcClientRequestContext;
 use crate::context::IpcClientResponseContext;
-use crate::ipc::sync::IpcChild;
+use crate::ipc::sync::create_ipc_child;
 
 pub struct HostReceiver<Request, Response>
 where
   Request: Clone + Send + Serialize + DeserializeOwned + 'static,
   Response: Clone + Send + Serialize + DeserializeOwned + 'static,
 {
-  pub on: BroadcastChannel<(Request, Sender<Response>)>,
+  _0: PhantomData<Request>, 
+  _1: PhantomData<Response>, 
 }
 
 impl<Request, Response> HostReceiver<Request, Response>
@@ -24,36 +25,28 @@ where
   Request: Clone + Send + Serialize + DeserializeOwned + 'static,
   Response: Clone + Send + Serialize + DeserializeOwned + 'static,
 {
-  pub fn new(channel_name: &str) -> Self {
+  pub fn new(channel_name: &str) -> Result<(Self, Receiver<(Request, Sender<Response>)>), ()> {
     let ipc_child_client = channel_name.to_string();
-    let trx = BroadcastChannel::<(Request, Sender<Response>)>::new();
+    let (tx, rx) = channel::<(Request, Sender<Response>)>();
 
-    let tx = trx.clone();
     thread::spawn(move || {
-      let Ok(ipc_child_client) = IpcChild::<
-        IpcClientResponseContext<Response>,
-        IpcClientRequestContext<Request>,
-      >::new(&ipc_child_client) else {
+      let Ok((tx_ipc, rx_ipc)) = create_ipc_child::<IpcClientResponseContext<Response>, IpcClientRequestContext<Request>>(&ipc_child_client) else {
         return;
       };
-      let irx = ipc_child_client.subscribe();
 
-      while let Ok(data) = irx.recv() {
-        match data.1 {
-          req => {
-            let (tx_reply, rx_reply) = channel::<Response>();
-            tx.send((req, tx_reply)).unwrap();
-            let response = rx_reply.recv().unwrap();
-            ipc_child_client.send(IpcClientResponseContext::<Response>(data.0, response));
-          }
-        }
+      while let Ok(data) = rx_ipc.recv() {
+        let (tx_reply, rx_reply) = channel::<Response>();
+        tx.send((data.1, tx_reply)).unwrap();
+        let response = rx_reply.recv().unwrap();
+        if tx_ipc.send(IpcClientResponseContext::<Response>(data.0, response)).is_err() {
+          return;
+        };
       }
     });
 
-    Self { on: trx }
-  }
-
-  pub fn subscribe(&self) -> Receiver<(Request, Sender<Response>)> {
-    self.on.subscribe()
+    Ok((Self { 
+      _0: PhantomData{},
+      _1: PhantomData{},
+    }, rx))
   }
 }

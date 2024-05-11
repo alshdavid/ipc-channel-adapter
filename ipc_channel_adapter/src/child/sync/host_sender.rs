@@ -13,7 +13,7 @@ use serde::Serialize;
 
 use crate::context::IpcClientRequestContext;
 use crate::context::IpcClientResponseContext;
-use crate::ipc::sync::IpcChild;
+use crate::ipc::sync::create_ipc_child;
 
 pub struct HostSender<Request, Response>
 where
@@ -22,7 +22,7 @@ where
 {
   counter: Arc<AtomicUsize>,
   messages: Arc<Mutex<HashMap<usize, Sender<Response>>>>,
-  ipc_child_host: IpcChild<IpcClientRequestContext<Request>, IpcClientResponseContext<Response>>,
+  tx_ipc: Sender<IpcClientRequestContext<Request>>,
 }
 
 impl<Request, Response> HostSender<Request, Response>
@@ -32,33 +32,30 @@ where
 {
   pub fn new(channel_name: &str) -> Result<Self, ()> {
     let ipc_child_host = channel_name.to_string();
-    let Ok(ipc_child_host) = IpcChild::<
-      IpcClientRequestContext<Request>,
-      IpcClientResponseContext<Response>,
-    >::new(&ipc_child_host) else {
+    
+    let Ok((tx_ipc, rx_ipc)) = create_ipc_child::<IpcClientRequestContext<Request>, IpcClientResponseContext<Response>>(&ipc_child_host) else {
       return Err(());
     };
 
     let messages = Arc::new(Mutex::new(HashMap::<usize, Sender<Response>>::new()));
 
-    {
-      let rx = ipc_child_host.subscribe();
+    thread::spawn({
       let messages = messages.clone();
 
-      thread::spawn(move || {
-        while let Ok(data) = rx.recv() {
+      move || {
+        while let Ok(data) = rx_ipc.recv() {
           let Some(sender) = messages.lock().unwrap().remove(&data.0) else {
             panic!();
           };
           sender.send(data.1).unwrap();
         }
-      });
-    }
+      }
+    });
 
     Ok(Self {
       messages,
       counter: Arc::new(AtomicUsize::new(0)),
-      ipc_child_host,
+      tx_ipc,
     })
   }
 
@@ -71,8 +68,9 @@ where
     let (tx, rx) = channel::<Response>();
     self.messages.lock().unwrap().insert(count.clone(), tx);
     self
-      .ipc_child_host
-      .send(IpcClientRequestContext::<Request>(count.clone(), req));
+      .tx_ipc
+      .send(IpcClientRequestContext::<Request>(count.clone(), req))
+      .unwrap();
     rx
   }
 }

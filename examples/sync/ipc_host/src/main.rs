@@ -25,8 +25,11 @@ struct Config {
 fn main() {
   let config = Config::parse();
 
+  // Send requests to child
   let child_sender = ChildSender::<usize, usize>::new();
-  let child_receiver = ChildReceiver::<usize, usize>::new();
+  
+  // Receive requests from child
+  let (child_receiver, child_rx) = ChildReceiver::<usize, usize>::new().unwrap();
 
   let mut entry = std::env::current_exe()
     .unwrap()
@@ -49,14 +52,12 @@ fn main() {
   command.stdout(Stdio::inherit());
   command.stdin(Stdio::piped());
 
-  let mut child = command.spawn().unwrap();
+  command.spawn().unwrap();
 
   // If not running benchmark
   if !config.benchmark {
-    let rx = child_receiver.on.subscribe();
-
     thread::spawn(move || {
-      while let Ok((v, reply)) = rx.recv() {
+      while let Ok((v, reply)) = child_rx.recv() {
         println!("[Host] Received: {}", v);
         reply.send(v).unwrap()
       }
@@ -64,9 +65,6 @@ fn main() {
 
     let response = child_sender.send_blocking(42);
     println!("[Host] Response: {}", response);
-    
-    // TODO why doesn't it close itself?
-    child.kill().unwrap();
     return;
   }
 
@@ -92,6 +90,4 @@ fn main() {
     "Total Time (ms): {:.3}s",
     end_time.as_nanos() as f64 / 1_000_000 as f64 / 1000 as f64
   );
-
-  child.kill().unwrap();
 }

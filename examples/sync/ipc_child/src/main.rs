@@ -14,29 +14,33 @@ struct Config {
 fn main() {
   let config = Config::parse();
 
-  let host_receiver = HostReceiver::<usize, usize>::new(&env::var("IPC_CHANNEL_HOST_OUT").unwrap());
-  let host_sender =
-    HostSender::<usize, usize>::new(&env::var("IPC_CHANNEL_HOST_IN").unwrap()).unwrap();
+  // Send requests to host
+  let host_sender_server = env::var("IPC_CHANNEL_HOST_IN").unwrap();
+  let host_sender = HostSender::<usize, usize>::new(&host_sender_server).unwrap();
+
+  // Receive requests from host
+  let host_receiver_server = env::var("IPC_CHANNEL_HOST_OUT").unwrap();
+  let (_host_receiver, host_receiver_rx) = HostReceiver::<usize, usize>::new(&host_receiver_server).unwrap();
 
   // If not running benchmark
   if !config.benchmark {
-    let rx = host_receiver.on.subscribe();
-
     thread::spawn(move || {
-      while let Ok((v, reply)) = rx.recv() {
+      while let Ok((v, reply)) = host_receiver_rx.recv() {
         println!("[Child] Received: {}", v);
         reply.send(v).unwrap()
       }
+      println!("done");
     });
 
     let response = host_sender.send_blocking(43);
     println!("[Child] Response: {}", response);
+
     return;
   }
 
   // Benchmark responder
-  let rx = host_receiver.on.subscribe();
-  while let Ok((v, reply)) = rx.recv() {
+  while let Ok((v, reply)) = host_receiver_rx.recv() {
     reply.send(v).unwrap()
   }
+  println!("done");
 }

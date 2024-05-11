@@ -1,23 +1,24 @@
+use std::marker::PhantomData;
 use std::sync::mpsc::channel;
+use std::sync::mpsc::Receiver;
 use std::sync::mpsc::Sender;
 use std::thread;
 
 use serde::de::DeserializeOwned;
 use serde::Serialize;
 
-use crate::broadcast_channel::sync::BroadcastChannel;
 use crate::context::IpcClientRequestContext;
 use crate::context::IpcClientResponseContext;
-use crate::ipc::sync::IpcHost;
+use crate::ipc::sync::create_ipc_host;
 
-#[derive(Clone)]
 pub struct ChildReceiver<Request, Response>
 where
   Request: Clone + Send + Serialize + DeserializeOwned + 'static,
   Response: Clone + Send + Serialize + DeserializeOwned + 'static,
 {
   pub server_name: String,
-  pub on: BroadcastChannel<(Request, Sender<Response>)>,
+  _0: PhantomData<Request>,
+  _1: PhantomData<Response>,
 }
 
 impl<Request, Response> ChildReceiver<Request, Response>
@@ -25,33 +26,36 @@ where
   Request: Clone + Send + Serialize + DeserializeOwned + 'static,
   Response: Clone + Send + Serialize + DeserializeOwned + 'static,
 {
-  pub fn new() -> Self {
-    let ipc_host_host =
-      IpcHost::<IpcClientResponseContext<Response>, IpcClientRequestContext<Request>>::new();
-    let server_name = ipc_host_host.server_name.clone();
+  pub fn new() -> Result<(Self, Receiver<(Request, Sender<Response>)>), ()> {
+    let (server_name, tx_ipc, rx_ipc) =
+      create_ipc_host::<IpcClientResponseContext<Response>, IpcClientRequestContext<Request>>()
+        .unwrap();
 
-    let trx = BroadcastChannel::<(Request, Sender<Response>)>::new();
+    let (tx, rx): (
+      Sender<(Request, Sender<Response>)>,
+      Receiver<(Request, Sender<Response>)>,
+    ) = channel::<(Request, Sender<Response>)>();
 
-    {
-      let irx = ipc_host_host.subscribe();
-      let trx = trx.clone();
-      thread::spawn(move || {
-        while let Ok(data) = irx.recv() {
-          match data.1 {
-            req => {
-              let (tx_reply, rx_reply) = channel::<Response>();
-              trx.send((req, tx_reply)).unwrap();
-              let response = rx_reply.recv().unwrap();
-              ipc_host_host.send(IpcClientResponseContext::<Response>(data.0, response));
-            }
-          }
-        }
-      });
-    }
+    let tx1 = tx.clone();
+    thread::spawn(move || {
+      while let Ok(data) = rx_ipc.recv() {
+        let (tx_reply, rx_reply) = channel::<Response>();
+        tx1.send((data.1, tx_reply)).unwrap();
+        let response = rx_reply.recv().unwrap();
+        tx_ipc
+          .send(IpcClientResponseContext::<Response>(data.0, response))
+          .unwrap();
+      }
+    });
 
-    Self {
-      server_name,
-      on: trx,
-    }
+    Ok((
+      Self {
+        server_name,
+        _0: PhantomData{},
+        _1: PhantomData{},
+      },
+      rx,
+    ))
   }
+
 }

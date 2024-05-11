@@ -1,5 +1,5 @@
-mod ipc_child;
-mod ipc_host;
+mod create_ipc_child;
+mod create_ipc_host;
 
-pub use self::ipc_child::*;
-pub use self::ipc_host::*;
+pub use self::create_ipc_child::*;
+pub use self::create_ipc_host::*;
