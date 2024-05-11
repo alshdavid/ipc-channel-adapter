@@ -4,8 +4,8 @@ use std::thread;
 use std::time::SystemTime;
 
 use clap::Parser;
-use ipc_adapter::host::sync::ChildReceiver;
-use ipc_adapter::host::sync::ChildSender;
+use ipc_channel_adapter::host::sync::ChildReceiver;
+use ipc_channel_adapter::host::sync::ChildSender;
 
 #[derive(Parser, Debug, Clone)]
 struct Config {

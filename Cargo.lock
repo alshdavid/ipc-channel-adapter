@@ -253,7 +253,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "ipc_adapter"
+name = "ipc_channel_adapter"
 version = "0.1.0"
 dependencies = [
  "ipc-channel",
@@ -266,7 +266,7 @@ name = "ipc_child_sync"
 version = "0.1.0"
 dependencies = [
  "clap",
- "ipc_adapter",
+ "ipc_channel_adapter",
 ]
 
 [[package]]
@@ -274,7 +274,7 @@ name = "ipc_host_sync"
 version = "0.1.0"
 dependencies = [
  "clap",
- "ipc_adapter",
+ "ipc_channel_adapter",
 ]
 
 [[package]]

@@ -2,8 +2,8 @@ use std::env;
 use std::thread;
 
 use clap::Parser;
-use ipc_adapter::child::sync::HostReceiver;
-use ipc_adapter::child::sync::HostSender;
+use ipc_channel_adapter::child::sync::HostReceiver;
+use ipc_channel_adapter::child::sync::HostSender;
 
 #[derive(Parser, Debug, Clone)]
 struct Config {

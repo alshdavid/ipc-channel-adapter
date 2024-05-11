@@ -3,6 +3,6 @@
 resolver = "2"
 members = [
   "ipc_channel_adapter", 
-  "testing/sync/ipc_child", 
-  "testing/sync/ipc_host"
+  "examples/sync/ipc_child", 
+  "examples/sync/ipc_host"
 ]
