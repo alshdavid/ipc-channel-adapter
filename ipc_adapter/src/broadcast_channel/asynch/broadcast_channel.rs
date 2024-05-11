@@ -1,19 +1,21 @@
-use super::channel_broadcast::{channel_broadcast, Subscribable};
+use tokio::sync::mpsc::error::SendError;
 use tokio::sync::mpsc::unbounded_channel;
 use tokio::sync::mpsc::UnboundedReceiver;
 use tokio::sync::mpsc::UnboundedSender;
-use tokio::sync::mpsc::error::SendError;
+
+use super::channel_broadcast::channel_broadcast;
+use super::channel_broadcast::Subscribable;
 
 #[derive(Clone)]
 pub struct BroadcastChannel<T: Clone + Send + 'static> {
   tx: UnboundedSender<T>,
-  rrx: Subscribable<T>
+  rrx: Subscribable<T>,
 }
 
 impl<T: Clone + Send + 'static> BroadcastChannel<T> {
   pub fn new() -> Self {
     let (tx, rrx) = channel_broadcast();
-    Self {tx, rrx}
+    Self { tx, rrx }
   }
 
   pub fn send(&self, value: T) -> Result<(), SendError<T>> {

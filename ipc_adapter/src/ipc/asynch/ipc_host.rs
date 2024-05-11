@@ -1,10 +1,10 @@
+use std::thread;
+
 use ipc_channel::ipc::IpcOneShotServer;
 use ipc_channel::ipc::IpcReceiver;
 use ipc_channel::ipc::IpcSender;
 use serde::de::DeserializeOwned;
 use serde::Serialize;
-use std::thread;
-
 use tokio::sync::mpsc::unbounded_channel;
 use tokio::sync::mpsc::UnboundedReceiver;
 use tokio::sync::mpsc::UnboundedSender;
@@ -55,7 +55,7 @@ where
       if !itx2.send(itx_child_outgoing).is_ok() {
         return;
       };
-      
+
       // Proxy incoming
       let mut senders = Vec::<Option<UnboundedSender<TRead>>>::new();
 
@@ -83,10 +83,7 @@ where
     }
   }
 
-  pub fn send(
-    &self,
-    data: TWrite,
-  ) {
+  pub fn send(&self, data: TWrite) {
     self.outgoing.send(data).unwrap();
   }
 

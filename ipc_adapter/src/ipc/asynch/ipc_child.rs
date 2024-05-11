@@ -1,10 +1,10 @@
+use std::thread;
+
 use ipc_channel::ipc::channel as ipc_channel;
 use ipc_channel::ipc::IpcReceiver;
 use ipc_channel::ipc::IpcSender;
 use serde::de::DeserializeOwned;
 use serde::Serialize;
-use std::thread;
-
 use tokio::sync::mpsc::unbounded_channel;
 use tokio::sync::mpsc::UnboundedReceiver;
 use tokio::sync::mpsc::UnboundedSender;
@@ -75,10 +75,7 @@ where
     }
   }
 
-  pub fn send(
-    &self,
-    data: TWrite,
-  ) {
+  pub fn send(&self, data: TWrite) {
     self.outgoing.send(data).unwrap();
   }
 

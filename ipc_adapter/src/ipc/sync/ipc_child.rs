@@ -1,12 +1,13 @@
+use std::sync::mpsc::channel;
+use std::sync::mpsc::Receiver;
+use std::sync::mpsc::Sender;
+use std::thread;
+
 use ipc_channel::ipc::channel as ipc_channel;
 use ipc_channel::ipc::IpcReceiver;
 use ipc_channel::ipc::IpcSender;
 use serde::de::DeserializeOwned;
 use serde::Serialize;
-use std::sync::mpsc::channel;
-use std::sync::mpsc::Receiver;
-use std::sync::mpsc::Sender;
-use std::thread;
 
 #[derive(Clone)]
 pub struct IpcChild<TWrite, TRead>
@@ -33,9 +34,10 @@ where
 
     // Receive a one shot channel to send back the "outgoing" and "incoming" channels
     let Ok(child_outgoing_init) =
-      IpcSender::<(IpcReceiver<TWrite>, IpcSender<TRead>)>::connect(host_server_name.to_string()) else {
-        return Err(())
-      };
+      IpcSender::<(IpcReceiver<TWrite>, IpcSender<TRead>)>::connect(host_server_name.to_string())
+    else {
+      return Err(());
+    };
 
     // Proxy outgoing
     thread::spawn(move || {
@@ -75,10 +77,7 @@ where
     })
   }
 
-  pub fn send(
-    &self,
-    data: TWrite,
-  ) {
+  pub fn send(&self, data: TWrite) {
     self.outgoing.send(data).unwrap();
   }
 
