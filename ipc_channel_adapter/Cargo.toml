@@ -1,5 +1,5 @@
 [package]
-name = "ipc_adapter"
+name = "ipc_channel_adapter"
 version = "0.1.0"
 edition = "2021"
 
