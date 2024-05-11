@@ -30,7 +30,6 @@ fn main() {
         println!("[Child] Received: {}", v);
         reply.send(v).unwrap()
       }
-      println!("done");
     });
 
     let response = host_sender.send_blocking(43);
