@@ -1,11 +1,13 @@
 use std::env;
 use std::process::Command;
 use std::process::Stdio;
+use std::sync::Arc;
 use std::time::SystemTime;
 
 use clap::Parser;
 use ipc_channel_adapter::host::asynch::ChildReceiver;
 use ipc_channel_adapter::host::asynch::ChildSender;
+use tokio::task::JoinSet;
 
 #[derive(Parser, Debug, Clone)]
 struct Config {
@@ -26,7 +28,7 @@ async fn main() {
   let config = Config::parse();
 
   // Send requests to child
-  let child_sender = ChildSender::<usize, usize>::new();
+  let child_sender = Arc::new(ChildSender::<usize, usize>::new());
 
   // Receive requests from child
   let (child_receiver, mut child_rx) = ChildReceiver::<usize, usize>::new().unwrap();
@@ -78,10 +80,17 @@ async fn main() {
   let mut sum = 0;
 
   let start_time = SystemTime::now();
+  
+  let mut reqs = JoinSet::new();
+
   for _ in 0..config.benchmark_message_count {
-    let result = child_sender.send_and_wait(1).await;
-    sum += result;
+    reqs.spawn(child_sender.send(1).await);
   }
+
+  while let Some(result) = reqs.join_next().await {
+    sum += result.unwrap().unwrap();
+  }
+
   let end_time = start_time.elapsed().unwrap();
 
   assert!(sum == expect, "Expected sums to match");
