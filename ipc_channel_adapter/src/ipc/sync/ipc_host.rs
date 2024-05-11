@@ -34,16 +34,28 @@ where
     let (child_incoming_init, child_incoming_server_name) =
       IpcOneShotServer::<(IpcReceiver<TRead>, IpcSender<TWrite>)>::new().unwrap();
 
+    let (itx2, irx2) = channel::<IpcSender<TWrite>>();
+    
+    // Proxy outgoing
+    thread::spawn(move || {
+      let Ok(itx_child_outgoing) = irx2.recv() else {
+        return;
+      };
+
+      while let Ok(data) = rx_child_outgoing.recv() {
+        itx_child_outgoing.send(data).unwrap();
+      }
+    });
+
     thread::spawn(move || {
       // Receive the "outgoing" and "incoming" channels
-      let (_, (itx_child_incoming, itx_child_outgoing)) = child_incoming_init.accept().unwrap();
+      let Ok((_, (itx_child_incoming, itx_child_outgoing))) = child_incoming_init.accept() else {
+        return;
+      };
 
-      // Proxy outgoing
-      thread::spawn(move || {
-        while let Ok(data) = rx_child_outgoing.recv() {
-          itx_child_outgoing.send(data).unwrap();
-        }
-      });
+      if !itx2.send(itx_child_outgoing).is_ok() {
+        return;
+      };
 
       // Proxy incoming
       let mut senders = Vec::<Option<Sender<TRead>>>::new();
