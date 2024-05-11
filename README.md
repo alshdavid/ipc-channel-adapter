@@ -1,6 +1,8 @@
 # IPC Channel Adapter
 
-This utility wraps [ipc-channel](https://github.com/servo/ipc-channel) to handle the handshake and respond with standard channels.
+This utility wraps [ipc-channel](https://github.com/servo/ipc-channel) to handle the handshake and offers with standard channels.
+
+This utility also offers a request/response wrapper for messages
 
 It supports Tokio for non-blocking operation
 
