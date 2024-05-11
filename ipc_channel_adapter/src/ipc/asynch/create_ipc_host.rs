@@ -1,16 +1,16 @@
 use std::thread;
 
-use tokio::sync::mpsc::unbounded_channel;
-use tokio::sync::mpsc::UnboundedReceiver;
-use tokio::sync::mpsc::UnboundedSender;
-
 use ipc_channel::ipc::IpcOneShotServer;
 use ipc_channel::ipc::IpcReceiver;
 use ipc_channel::ipc::IpcSender;
 use serde::de::DeserializeOwned;
 use serde::Serialize;
+use tokio::sync::mpsc::unbounded_channel;
+use tokio::sync::mpsc::UnboundedReceiver;
+use tokio::sync::mpsc::UnboundedSender;
 
-pub fn create_ipc_host<TWrite, TRead>() -> Result<(String, UnboundedSender<TWrite>, UnboundedReceiver<TRead>), ()>
+pub fn create_ipc_host<TWrite, TRead>(
+) -> Result<(String, UnboundedSender<TWrite>, UnboundedReceiver<TRead>), ()>
 where
   TWrite: Clone + Send + Serialize + DeserializeOwned + 'static,
   TRead: Clone + Send + Serialize + DeserializeOwned + 'static,

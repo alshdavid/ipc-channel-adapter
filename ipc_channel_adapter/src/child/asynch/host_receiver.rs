@@ -1,11 +1,10 @@
 use std::marker::PhantomData;
 
-use tokio::sync::mpsc::unbounded_channel;
-use tokio::sync::mpsc::UnboundedSender;
-use tokio::sync::mpsc::UnboundedReceiver;
-
 use serde::de::DeserializeOwned;
 use serde::Serialize;
+use tokio::sync::mpsc::unbounded_channel;
+use tokio::sync::mpsc::UnboundedReceiver;
+use tokio::sync::mpsc::UnboundedSender;
 
 use crate::context::IpcClientRequestContext;
 use crate::context::IpcClientResponseContext;
@@ -25,7 +24,15 @@ where
   Request: Clone + Send + Serialize + DeserializeOwned + 'static,
   Response: Clone + Send + Serialize + DeserializeOwned + 'static,
 {
-  pub fn new(channel_name: &str) -> Result<(Self, UnboundedReceiver<(Request, UnboundedSender<Response>)>), ()> {
+  pub fn new(
+    channel_name: &str,
+  ) -> Result<
+    (
+      Self,
+      UnboundedReceiver<(Request, UnboundedSender<Response>)>,
+    ),
+    (),
+  > {
     let ipc_child_client = channel_name.to_string();
     let (tx, rx) = unbounded_channel::<(Request, UnboundedSender<Response>)>();
 
