@@ -13,7 +13,12 @@ struct Config {
   #[arg(short = 'b', long = "benchmark", env = "IPC_BENCHMARK")]
   pub benchmark: bool,
 
-  #[arg(short = 'm',long = "benchmark-message-count", env = "IPC_BENCHMARK_MESSAGE_COUNT", default_value = "100000")]
+  #[arg(
+    short = 'm',
+    long = "benchmark-message-count",
+    env = "IPC_BENCHMARK_MESSAGE_COUNT",
+    default_value = "100000"
+  )]
   pub benchmark_message_count: usize,
 }
 
@@ -59,10 +64,13 @@ fn main() {
 
     let response = child_sender.send_blocking(42);
     println!("[Host] Response: {}", response);
-    return
+    return;
   }
-  
-  println!("Benchmark: host sending \"{}\" messages", config.benchmark_message_count);
+
+  println!(
+    "Benchmark: host sending \"{}\" messages",
+    config.benchmark_message_count
+  );
 
   // Benchmark mode
   let expect = 1 * config.benchmark_message_count;

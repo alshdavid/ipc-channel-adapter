@@ -18,7 +18,6 @@ fn main() {
   let host_sender =
     HostSender::<usize, usize>::new(&env::var("IPC_CHANNEL_HOST_IN").unwrap()).unwrap();
 
-
   // If not running benchmark
   if !config.benchmark {
     let rx = host_receiver.on.subscribe();
