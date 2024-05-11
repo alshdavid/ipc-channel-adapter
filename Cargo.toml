@@ -3,8 +3,10 @@
 resolver = "2"
 members = [
   "ipc_channel_adapter", 
+  "examples/sync/ipc_host",
   "examples/sync/ipc_child", 
-  "examples/sync/ipc_host"
+  "examples/asynch/ipc_host",
+  "examples/asynch/ipc_child",
 ]
 
 [profile.release]

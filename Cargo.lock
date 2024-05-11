@@ -262,11 +262,29 @@ dependencies = [
 ]
 
 [[package]]
+name = "ipc_child_asynch"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "ipc_channel_adapter",
+ "tokio",
+]
+
+[[package]]
 name = "ipc_child_sync"
 version = "0.1.0"
 dependencies = [
  "clap",
  "ipc_channel_adapter",
+]
+
+[[package]]
+name = "ipc_host_asynch"
+version = "0.1.0"
+dependencies = [
+ "clap",
+ "ipc_channel_adapter",
+ "tokio",
 ]
 
 [[package]]
