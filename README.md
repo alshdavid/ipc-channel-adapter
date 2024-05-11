@@ -22,6 +22,7 @@ fn main() {
   //   Response to send back to child is u64 
   let (child_receiver, child_rx) = ChildReceiver::<u32, u64>::new().unwrap();
 
+  // Spawn child process and give it the names of the IPC channels
   let child_process = spawn_child_process("your_child_process")
     .env("IPC_RECEIVER_NAME", child_receiver.server_name)
     .env("IPC_SENDER_NAME", child_sender.server_name)
