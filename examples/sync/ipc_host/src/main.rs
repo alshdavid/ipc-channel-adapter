@@ -49,7 +49,7 @@ fn main() {
   command.stdout(Stdio::inherit());
   command.stdin(Stdio::piped());
 
-  command.spawn().unwrap();
+  let mut child = command.spawn().unwrap();
 
   // If not running benchmark
   if !config.benchmark {
@@ -64,6 +64,9 @@ fn main() {
 
     let response = child_sender.send_blocking(42);
     println!("[Host] Response: {}", response);
+    
+    // TODO why doesn't it close itself?
+    child.kill().unwrap();
     return;
   }
 
@@ -89,4 +92,6 @@ fn main() {
     "Total Time (ms): {:.3}s",
     end_time.as_nanos() as f64 / 1_000_000 as f64 / 1000 as f64
   );
+
+  child.kill().unwrap();
 }
