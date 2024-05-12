@@ -3,6 +3,7 @@ use std::sync::mpsc::channel;
 use std::sync::mpsc::Receiver;
 use std::sync::mpsc::Sender;
 use std::thread;
+use std::fmt::Debug;
 
 use serde::de::DeserializeOwned;
 use serde::Serialize;
@@ -13,8 +14,8 @@ use crate::ipc::sync::create_ipc_child;
 
 pub struct HostReceiver<Request, Response>
 where
-  Request: Clone + Send + Serialize + DeserializeOwned + 'static,
-  Response: Clone + Send + Serialize + DeserializeOwned + 'static,
+  Request: Clone + Send + Serialize + DeserializeOwned + Debug + 'static,
+  Response: Clone + Send + Serialize + DeserializeOwned + Debug + 'static,
 {
   _0: PhantomData<Request>,
   _1: PhantomData<Response>,
@@ -22,8 +23,8 @@ where
 
 impl<Request, Response> HostReceiver<Request, Response>
 where
-  Request: Clone + Send + Serialize + DeserializeOwned + 'static,
-  Response: Clone + Send + Serialize + DeserializeOwned + 'static,
+  Request: Clone + Send + Serialize + DeserializeOwned + Debug + 'static,
+  Response: Clone + Send + Serialize + DeserializeOwned + Debug + 'static,
 {
   pub fn new(channel_name: &str) -> Result<(Self, Receiver<(Request, Sender<Response>)>), ()> {
     let ipc_child_client = channel_name.to_string();

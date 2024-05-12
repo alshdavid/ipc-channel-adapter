@@ -2,6 +2,7 @@ use std::sync::mpsc::channel;
 use std::sync::mpsc::Receiver;
 use std::sync::mpsc::Sender;
 use std::thread;
+use std::fmt::Debug;
 
 use ipc_channel::ipc::channel as ipc_channel;
 use ipc_channel::ipc::IpcReceiver;
@@ -13,8 +14,8 @@ pub fn create_ipc_child<TWrite, TRead>(
   host_server_name: &str,
 ) -> Result<(Sender<TWrite>, Receiver<TRead>), ()>
 where
-  TWrite: Clone + Send + Serialize + DeserializeOwned + 'static,
-  TRead: Clone + Send + Serialize + DeserializeOwned + 'static,
+  TWrite: Clone + Send + Serialize + DeserializeOwned + Debug + 'static,
+  TRead: Clone + Send + Serialize + DeserializeOwned + Debug + 'static,
 {
   // Proxies
   let (tx_child_outgoing, rx_child_outgoing) = channel::<TWrite>();

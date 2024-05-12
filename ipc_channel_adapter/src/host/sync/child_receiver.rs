@@ -3,6 +3,7 @@ use std::sync::mpsc::channel;
 use std::sync::mpsc::Receiver;
 use std::sync::mpsc::Sender;
 use std::thread;
+use std::fmt::Debug;
 
 use serde::de::DeserializeOwned;
 use serde::Serialize;
@@ -13,8 +14,8 @@ use crate::ipc::sync::create_ipc_host;
 
 pub struct ChildReceiver<Request, Response>
 where
-  Request: Clone + Send + Serialize + DeserializeOwned + 'static,
-  Response: Clone + Send + Serialize + DeserializeOwned + 'static,
+  Request: Clone + Send + Serialize + DeserializeOwned + Debug + 'static,
+  Response: Clone + Send + Serialize + DeserializeOwned + Debug + 'static,
 {
   pub server_name: String,
   _0: PhantomData<Request>,
@@ -23,8 +24,8 @@ where
 
 impl<Request, Response> ChildReceiver<Request, Response>
 where
-  Request: Clone + Send + Serialize + DeserializeOwned + 'static,
-  Response: Clone + Send + Serialize + DeserializeOwned + 'static,
+  Request: Clone + Send + Serialize + DeserializeOwned + Debug + 'static,
+  Response: Clone + Send + Serialize + DeserializeOwned + Debug + 'static,
 {
   pub fn new() -> Result<(Self, Receiver<(Request, Sender<Response>)>), ()> {
     let (server_name, tx_ipc, rx_ipc) =

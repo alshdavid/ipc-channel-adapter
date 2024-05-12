@@ -7,6 +7,7 @@ use std::sync::mpsc::Sender;
 use std::sync::Arc;
 use std::sync::Mutex;
 use std::thread;
+use std::fmt::Debug;
 
 use serde::de::DeserializeOwned;
 use serde::Serialize;
@@ -17,8 +18,8 @@ use crate::ipc::sync::create_ipc_child;
 
 pub struct HostSender<Request, Response>
 where
-  Request: Clone + Send + Serialize + DeserializeOwned + 'static,
-  Response: Clone + Send + Serialize + DeserializeOwned + 'static,
+  Request: Clone + Send + Serialize + DeserializeOwned + Debug + 'static,
+  Response: Clone + Send + Serialize + DeserializeOwned + Debug + 'static,
 {
   counter: Arc<AtomicUsize>,
   messages: Arc<Mutex<HashMap<usize, Sender<Response>>>>,
@@ -27,8 +28,8 @@ where
 
 impl<Request, Response> HostSender<Request, Response>
 where
-  Request: Clone + Send + Serialize + DeserializeOwned + 'static,
-  Response: Clone + Send + Serialize + DeserializeOwned + 'static,
+  Request: Clone + Send + Serialize + DeserializeOwned + Debug + 'static,
+  Response: Clone + Send + Serialize + DeserializeOwned + Debug + 'static,
 {
   pub fn new(channel_name: &str) -> Result<Self, ()> {
     let ipc_child_host = channel_name.to_string();
