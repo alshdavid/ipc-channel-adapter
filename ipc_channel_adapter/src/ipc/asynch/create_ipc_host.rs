@@ -1,4 +1,5 @@
 use std::thread;
+use std::fmt::Debug;
 
 use ipc_channel::ipc::IpcOneShotServer;
 use ipc_channel::ipc::IpcReceiver;
@@ -12,8 +13,8 @@ use tokio::sync::mpsc::UnboundedSender;
 pub fn create_ipc_host<TWrite, TRead>(
 ) -> Result<(String, UnboundedSender<TWrite>, UnboundedReceiver<TRead>), ()>
 where
-  TWrite: Clone + Send + Serialize + DeserializeOwned + 'static,
-  TRead: Clone + Send + Serialize + DeserializeOwned + 'static,
+  TWrite: Clone + Send + Serialize + DeserializeOwned + Debug + 'static,
+  TRead: Clone + Send + Serialize + DeserializeOwned + Debug + 'static,
 {
   // Proxies
   let (tx_child_incoming, rx_child_incoming) = unbounded_channel::<TRead>();

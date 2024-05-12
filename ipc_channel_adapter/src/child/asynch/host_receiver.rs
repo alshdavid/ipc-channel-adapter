@@ -1,4 +1,5 @@
 use std::marker::PhantomData;
+use std::fmt::Debug;
 
 use serde::de::DeserializeOwned;
 use serde::Serialize;
@@ -12,8 +13,8 @@ use crate::ipc::asynch::create_ipc_child;
 
 pub struct HostReceiver<Request, Response>
 where
-  Request: Clone + Send + Serialize + DeserializeOwned + 'static,
-  Response: Clone + Send + Serialize + DeserializeOwned + 'static,
+  Request: Clone + Send + Serialize + DeserializeOwned + Debug + 'static,
+  Response: Clone + Send + Serialize + DeserializeOwned + Debug + 'static,
 {
   _0: PhantomData<Request>,
   _1: PhantomData<Response>,
@@ -21,8 +22,8 @@ where
 
 impl<Request, Response> HostReceiver<Request, Response>
 where
-  Request: Clone + Send + Serialize + DeserializeOwned + 'static,
-  Response: Clone + Send + Serialize + DeserializeOwned + 'static,
+  Request: Clone + Send + Serialize + DeserializeOwned + Debug + 'static,
+  Response: Clone + Send + Serialize + DeserializeOwned + Debug + 'static,
 {
   pub fn new(
     channel_name: &str,

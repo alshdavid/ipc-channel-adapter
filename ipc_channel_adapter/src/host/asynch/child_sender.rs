@@ -29,7 +29,7 @@ where
 
 impl<Request, Response> ChildSender<Request, Response>
 where
-  Request: Clone + Send + Serialize + DeserializeOwned + 'static,
+  Request: Clone + Send + Serialize + DeserializeOwned +  Debug + 'static,
   Response: Clone + Send + Serialize + DeserializeOwned + Debug + 'static,
 {
   pub fn new() -> Self {
@@ -67,11 +67,15 @@ where
   pub async fn send(&self, req: Request) -> OneshotReceiver<Response> {
     let count = self.counter.fetch_add(1, Ordering::Relaxed);
     let (tx, rx) = oneshot_channel::<Response>();
-    self.messages.lock().await.insert(count.clone(), tx);
+    {
+      self.messages.lock().await.insert(count.clone(), tx);
+    }
+    
     self
       .tx_ipc
       .send(IpcClientRequestContext::<Request>(count.clone(), req))
       .unwrap();
+    
     rx
   }
 }
