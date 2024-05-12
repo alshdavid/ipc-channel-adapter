@@ -26,7 +26,7 @@ fn main() {
   let config = Config::parse();
 
   // Send requests to child
-  let child_sender = ChildSender::<usize, usize>::new();
+  let child_sender = ChildSender::<usize, usize>::new().unwrap();
 
   // Receive requests from child
   let (child_receiver, child_rx) = ChildReceiver::<usize, usize>::new().unwrap();
@@ -63,7 +63,7 @@ fn main() {
       }
     });
 
-    let response = child_sender.send_blocking(42);
+    let response = child_sender.send_blocking(42).unwrap();
     println!("[Host] Response: {}", response);
     return;
   }
@@ -79,7 +79,7 @@ fn main() {
 
   let start_time = SystemTime::now();
   for _ in 0..config.benchmark_message_count {
-    let result = child_sender.send_blocking(1);
+    let result = child_sender.send_blocking(1).unwrap();
     sum += result;
   }
   let end_time = start_time.elapsed().unwrap();

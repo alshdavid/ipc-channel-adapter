@@ -27,10 +27,9 @@ where
   Request: Clone + Send + Serialize + DeserializeOwned + Debug + 'static,
   Response: Clone + Send + Serialize + DeserializeOwned + Debug + 'static,
 {
-  pub fn new() -> Result<(Self, Receiver<(Request, Sender<Response>)>), ()> {
+  pub fn new() -> Result<(Self, Receiver<(Request, Sender<Response>)>), String> {
     let (server_name, tx_ipc, rx_ipc) =
-      create_ipc_host::<IpcClientResponseContext<Response>, IpcClientRequestContext<Request>>()
-        .unwrap();
+      create_ipc_host::<IpcClientResponseContext<Response>, IpcClientRequestContext<Request>>()?;
 
     let (tx, rx) = channel::<(Request, Sender<Response>)>();
 
