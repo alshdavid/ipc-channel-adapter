@@ -5,7 +5,8 @@ use std::thread;
 use std::time::SystemTime;
 
 use clap::Parser;
-use ipc_channel_adapter::ipc::sync::HostConnection;
+use ipc_channel_adapter::host::sync::ChildReceiver;
+use ipc_channel_adapter::host::sync::ChildSender;
 
 #[derive(Parser, Debug, Clone)]
 struct Config {
@@ -24,7 +25,11 @@ struct Config {
 fn main() {
   let config = Config::parse();
 
-  let tx = HostConnection::<usize, usize>::new().unwrap();
+  // Send requests to child
+  let child_sender = ChildSender::<usize, usize>::new().unwrap();
+
+  // Receive requests from child
+  let (child_receiver, child_rx) = ChildReceiver::<usize, usize>::new().unwrap();
 
   let mut entry = std::env::current_exe()
     .unwrap()
@@ -39,7 +44,8 @@ fn main() {
   }
 
   let mut command = Command::new(entry.to_str().unwrap());
-  command.env("IPC_CHANNEL_HOST_SERVER", &tx.server_name());
+  command.env("IPC_CHANNEL_HOST_OUT", &child_sender.server_name);
+  command.env("IPC_CHANNEL_HOST_IN", &child_receiver.server_name);
   command.env("IPC_BENCHMARK", &config.benchmark.to_string());
 
   command.stderr(Stdio::inherit());
@@ -48,12 +54,32 @@ fn main() {
 
   command.spawn().unwrap();
 
+  // If not running benchmark
+  if !config.benchmark {
+    thread::spawn(move || {
+      while let Ok((v, reply)) = child_rx.recv() {
+        println!("[Host] Received: {}", v);
+        reply.send(v).unwrap()
+      }
+    });
+
+    let response = child_sender.send_blocking(42).unwrap();
+    println!("[Host] Response: {}", response);
+    return;
+  }
+
+  println!(
+    "Benchmark: host sending \"{}\" messages",
+    config.benchmark_message_count
+  );
+
+  // Benchmark mode
   let expect = 1 * config.benchmark_message_count;
   let mut sum = 0;
 
   let start_time = SystemTime::now();
   for _ in 0..config.benchmark_message_count {
-    let result = tx.send(1).unwrap();
+    let result = child_sender.send_blocking(1).unwrap();
     sum += result;
   }
   let end_time = start_time.elapsed().unwrap();
